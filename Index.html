@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style> body { margin: 0; overflow: hidden; } </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // 1. Настройка сцены
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, 1920/1080, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        
+        renderer.setSize(1920, 1080);
+        document.body.appendChild(renderer.domElement);
+
+        // 2. Добавление звездного фона
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsVertices = [];
+        for (let i = 0; i < 5000; i++) {
+            const x = THREE.MathUtils.randFloatSpread(2000);
+            const y = THREE.MathUtils.randFloatSpread(2000);
+            const z = THREE.MathUtils.randFloatSpread(2000);
+            starsVertices.push(x, y, z);
+        }
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+        const stars = new THREE.Points(
+            starsGeometry,
+            new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.7 })
+        );
+        scene.add(stars);
+
+        // 3. Создание 3D-пылинок (галактика)
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 5000;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 10;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.005,
+            color: 0xfffec9,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        // 4. Настройка камеры и контролов
+        camera.position.z = 5;
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        // 5. Анимация
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Вращение частиц
+            particlesMesh.rotation.x += 0.001;
+            particlesMesh.rotation.y += 0.001;
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 6. Адаптация под размер окна Telegram
+        window.addEventListener('resize', () => {
+            camera.aspect = 1920/1080;
+            camera.updateProjectionMatrix();
+            renderer.setSize(1920, 1080);
+        });
+    </script>
+</body>
+</html>
